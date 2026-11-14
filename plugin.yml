@@ -1,0 +1,50 @@
+name: WorldManager
+main: WorldManager\Main
+version: 1.0.0
+api: 5.36.0
+author: Ent0ty
+description: Manage your worlds.
+
+permissions:
+  worldmanager.command:
+    default: op
+    description: Allows using /worldmanager
+  worldmanager.command.create:
+    default: op
+    description: Allows creating worlds
+  worldmanager.command.load:
+    default: op
+    description: Allows loading worlds
+  worldmanager.command.unload:
+    default: op
+    description: Allows unloading worlds
+  worldmanager.command.teleport:
+    default: op
+    description: Allows teleporting yourself to a world
+  worldmanager.command.teleport.others:
+    default: op
+    description: Allows teleporting other players to a world
+  worldmanager.command.delete:
+    default: op
+    description: Allows permanently deleting worlds
+  worldmanager.command.list:
+    default: op
+    description: Allows listing worlds
+  worldmanager.command.info:
+    default: op
+    description: Allows viewing world information
+  worldmanager.command.setlobby:
+    default: op
+    description: Allows setting the lobby world
+  worldmanager.command.duplicate:
+    default: op
+    description: Allows duplicating worlds
+  worldmanager.command.rename:
+    default: op
+    description: Allows renaming worlds
+  worldmanager.command.whitelist:
+    default: op
+    description: Allows managing the whitelist of worlds
+  worldmanager.command.gamerule:
+    default: op
+    description: Allows managing game rules of worlds

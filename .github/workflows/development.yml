@@ -1,0 +1,42 @@
+name: Development Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Development PHAR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP for Axolotl-PM 5
+        uses: axolotl-pm/setup-php-action@b8c3f9add4f2ad4a5e2624a1112aba899ee8db0e # 1.0.0
+        with:
+          php-version: '8.4'
+          install-path: ../bin
+          pm-version-major: '5'
+
+      - name: Check PHP syntax
+        run: find src -name '*.php' -print0 | xargs -0 -r -n1 php -l
+
+      - name: Build PHAR
+        run: php -dphar.readonly=0 build-plugin.php
+
+      - name: Upload PHAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorldManager-DEV
+          path: WorldManager.phar
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30

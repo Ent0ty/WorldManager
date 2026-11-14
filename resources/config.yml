@@ -1,0 +1,3 @@
+# Language of all plugin messages (bundled: en, de). Default: en
+# Custom languages: add plugin_data/WorldManager/lang/<code>.yml, missing keys fall back to English.
+language: en
