@@ -35,7 +35,7 @@ if (is_file($composerFile)) {
     if (!is_dir($vendorPath)) {
         exec("composer install --no-progress --no-dev --prefer-dist --optimize-autoloader --ignore-platform-reqs");
     }
-    
+
     $composerData = json_decode(file_get_contents($composerFile), true);
 
     $injectableDependencies = [];
@@ -50,18 +50,25 @@ if (is_file($composerFile)) {
     foreach ($injectableDependencies as $dependency => $directory) {
         $prefix = "_" . bin2hex(random_bytes(10)) . "_";
         $dependencyPrefixes[$dependency] = $prefix;
-        $src = "src" . DIRECTORY_SEPARATOR . str_replace(["/", "\\"], DIRECTORY_SEPARATOR, $dependency);
+
+        $srcDir = $directory . DIRECTORY_SEPARATOR . "src" . DIRECTORY_SEPARATOR;
+        $nsPath = str_replace(["/", "\\"], DIRECTORY_SEPARATOR, $dependency);
+
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS | FilesystemIterator::FOLLOW_SYMLINKS | FilesystemIterator::CURRENT_AS_PATHNAME)
         );
         foreach ($iterator as $file) {
-            $srcPos = strpos($file, $src);
-            if ($srcPos === false) {
+            if (strpos($file, $srcDir) !== 0 || !str_ends_with($file, ".php")) {
                 continue;
             }
-            $shadedFilePath = "src" . DIRECTORY_SEPARATOR . $prefix . substr($file, $srcPos + 4);
-            $files[$shadedFilePath] = file_get_contents($file);
+            $relative = substr($file, strlen($srcDir));
+            // PSR-4 layout (files directly in src/): prepend the namespace path
+            if (!str_starts_with($relative, $nsPath . DIRECTORY_SEPARATOR)) {
+                $relative = $nsPath . DIRECTORY_SEPARATOR . $relative;
+            }
+            $files["src" . DIRECTORY_SEPARATOR . $prefix . $relative] = file_get_contents($file);
         }
+        echo "Injected virion: " . $dependency . " (" . $prefix . ")" . PHP_EOL;
     }
 
     foreach ($dependencyPrefixes as $dependency => $prefix) {
@@ -81,7 +88,8 @@ $phar = new Phar($pharPath);
 $phar->startBuffering();
 
 foreach($files as $file => $contents) {
-    $phar->addFromString($file, $contents);
+    // Phar entries always use forward slashes
+    $phar->addFromString(str_replace("\\", "/", $file), $contents);
 }
 
 $phar->compressFiles(Phar::GZ);
@@ -103,7 +111,8 @@ function searchInjectableDependencies(string $dependency, string $vendorPath, ar
             return;
         }
         $specVersion = $virionData["spec"];
-        if (version_compare($specVersion, "3.0", ">") || version_compare($specVersion, "3.0", "<") || !isset($virionData["namespace-root"])) {
+        // accept every 3.x spec version (3.0, 3.1, ...)
+        if (version_compare($specVersion, "3.0", "<") || version_compare($specVersion, "4.0", ">=") || !isset($virionData["namespace-root"])) {
             return;
         }
         $injectableDependencies[$virionData["namespace-root"]] = $dependencyPath;

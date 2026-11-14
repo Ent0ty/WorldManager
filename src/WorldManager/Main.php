@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WorldManager;
 
+use bStats\PocketmineMp\Metrics;
 use CortexPE\Commando\PacketHooker;
 use muqsit\simplepackethandler\SimplePacketHandler;
 use pocketmine\plugin\PluginBase;
@@ -45,5 +46,11 @@ final class Main extends PluginBase{
 			new WorldCommand($this, $worlds, $gameRules, $whitelist),
 			new GameRuleCommand($this, $worlds, $gameRules),
 		]);
+
+		$this->registerMetrics();
+	}
+
+	private function registerMetrics(): void {
+		new Metrics($this, 35339);
 	}
 }
